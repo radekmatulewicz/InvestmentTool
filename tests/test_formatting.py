@@ -4,6 +4,20 @@ import pytest
 from utils.formatting import fmt_currency, fmt_pct, fmt_number, pnl_color, fmt_metric_value
 
 
+# Parametrized edge-case table for fmt_currency
+@pytest.mark.parametrize("value,expected", [
+    (0, "$0.00"),
+    (999, "$999.00"),
+    (1_000, "$1,000.00"),
+    (1_000_000, "$1.00M"),
+    (1_000_000_000, "$1.00B"),
+    (1_000_000_000_000, "$1.00T"),
+    (None, "N/A"),
+])
+def test_fmt_currency_parametrized(value, expected):
+    assert fmt_currency(value) == expected
+
+
 class TestFmtCurrency:
     def test_normal_value(self):
         assert fmt_currency(1234.5) == "$1,234.50"
