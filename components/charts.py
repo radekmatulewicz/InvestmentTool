@@ -95,8 +95,15 @@ def allocation_pie_chart(holdings: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def portfolio_value_chart(values: pd.Series, title: str = "Portfolio Value Over Time") -> go.Figure:
-    fig = go.Figure(go.Scatter(
+def portfolio_value_chart(
+    values: pd.Series,
+    title: str = "Portfolio Value Over Time",
+    transactions: pd.DataFrame | None = None,
+) -> go.Figure:
+    fig = go.Figure()
+
+    # Main area chart
+    fig.add_trace(go.Scatter(
         x=values.index, y=values.values,
         fill="tozeroy",
         fillcolor="rgba(37,99,235,0.15)",
@@ -104,8 +111,46 @@ def portfolio_value_chart(values: pd.Series, title: str = "Portfolio Value Over 
         name="Portfolio Value",
         hovertemplate="%{x|%Y-%m-%d}<br>$%{y:,.2f}<extra></extra>",
     ))
-    fig.update_layout(**DARK_LAYOUT, title=title, height=400,
-                      yaxis_title="Value ($)", xaxis_title="Date")
+
+    # Transaction markers
+    if transactions is not None and not transactions.empty:
+        for _, row in transactions.iterrows():
+            tx_date = pd.Timestamp(row["date"])
+            if tx_date in values.index:
+                y_val = float(values[tx_date])
+            else:
+                available = values[values.index <= tx_date]
+                if available.empty:
+                    continue
+                y_val = float(available.iloc[-1])
+
+            is_buy = row["type"] == "buy"
+            fig.add_trace(go.Scatter(
+                x=[tx_date], y=[y_val],
+                mode="markers",
+                marker=dict(
+                    symbol="triangle-up" if is_buy else "triangle-down",
+                    size=12,
+                    color="#22c55e" if is_buy else "#ef4444",
+                    line=dict(color="white", width=1),
+                ),
+                name=f"{'BUY' if is_buy else 'SELL'} {row['ticker']}",
+                hovertemplate=(
+                    f"{'BUY' if is_buy else 'SELL'} {row['ticker']}<br>"
+                    f"{row['quantity']:.4f} @ ${row['price']:.2f}<br>"
+                    f"%{{x|%Y-%m-%d}}<extra></extra>"
+                ),
+            ))
+
+    fig.update_layout(
+        **DARK_LAYOUT,
+        title=title,
+        height=450,
+        yaxis_title="Value ($)",
+        xaxis_title="Date",
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )
     return fig
 
 
