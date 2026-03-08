@@ -5,6 +5,27 @@ import pandas as pd
 import numpy as np
 from services.technical_analysis import compute_indicators, get_signals, get_support_resistance
 
+
+# Parametrized RSI boundary checks
+@pytest.mark.parametrize("rsi,expected_signal", [
+    (29.9, "BUY"),
+    (30.0, "HOLD"),   # boundary: exactly 30 is not < 30
+    (50.0, "HOLD"),
+    (70.0, "HOLD"),   # boundary: exactly 70 is not > 70
+    (70.1, "SELL"),
+])
+def test_rsi_signal_boundaries(rsi, expected_signal):
+    df = pd.DataFrame({
+        "RSI": [rsi, rsi],
+        "Close": [100.0, 100.0],
+        "BB_upper": [110.0, 110.0],
+        "BB_lower": [90.0, 90.0],
+        "MACD": [0.0, 0.0],
+        "MACD_signal": [0.0, 0.0],
+    })
+    signals = get_signals(df)
+    assert signals["RSI"][0] == expected_signal
+
 INDICATOR_COLUMNS = ["SMA20", "SMA50", "EMA20", "BB_upper", "BB_mid", "BB_lower",
                       "RSI", "MACD", "MACD_signal", "MACD_hist"]
 
