@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "investment-tool"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit>=1.32.0",
+    "yfinance>=0.2.37",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "ta>=0.11.0",
+    "plotly>=5.20.0",
+    "sqlalchemy>=2.0.0",
+    "python-dateutil>=2.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["database*", "services*", "components*", "pages*", "utils*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
